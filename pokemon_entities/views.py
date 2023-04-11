@@ -75,8 +75,18 @@ def show_pokemon(request, pokemon_id):
         'title_ru': pokemon.title,
         'title_en': pokemon.title_en,
         'title_jp': pokemon.title_jp,
-        'description': pokemon.description
+        'description': pokemon.description,
     }
+
+    if pokemon.parent:
+        pokemon_parent = Pokemon.objects.get(id=pokemon.parent.id)
+        pokemon_for_template.update(
+            previous_evolution={
+                'pokemon_id': pokemon_parent.id,
+                'title_ru': pokemon_parent.title,
+                'img_url': request.build_absolute_uri(pokemon_parent.image.url)
+            }
+        )
 
     return render(request, 'pokemon.html', context={
         'map': folium_map._repr_html_(), 'pokemon': pokemon_for_template
