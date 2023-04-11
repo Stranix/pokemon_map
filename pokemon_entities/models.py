@@ -1,3 +1,6 @@
+from datetime import datetime
+
+from django.utils import timezone
 from django.db import models  # noqa F401
 
 
@@ -10,13 +13,17 @@ class Pokemon(models.Model):
 
 
 class PokemonEntity(models.Model):
-    pokemon = models.ForeignKey(Pokemon, on_delete=models.CASCADE, default=1)
+    pokemon = models.ForeignKey(Pokemon, on_delete=models.CASCADE)
     lat = models.FloatField(blank=True)
     lon = models.FloatField(blank=True)
-    appeared_at = models.DateTimeField(null=True, blank=True)
-    disappeared_at = models.DateTimeField(null=True, blank=True)
-    level = models.IntegerField(default=1)
-    health = models.IntegerField(default=1)
-    strength = models.IntegerField(default=1)
-    defence = models.IntegerField(default=1)
-    stamina = models.IntegerField(default=1)
+    appeared_at = models.DateTimeField(default=datetime.now(), blank=True)
+    disappeared_at = models.DateTimeField(default=datetime.now(), blank=True)
+    level = models.IntegerField(null=True, blank=True)
+    health = models.IntegerField(null=True, blank=True)
+    strength = models.IntegerField(null=True, blank=True)
+    defence = models.IntegerField(null=True, blank=True)
+    stamina = models.IntegerField(null=True, blank=True)
+
+    def is_visible(self):
+        if self.appeared_at < timezone.localtime() < self.disappeared_at:
+            return True
