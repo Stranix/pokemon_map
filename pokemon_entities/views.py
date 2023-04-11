@@ -78,13 +78,18 @@ def show_pokemon(request, pokemon_id):
         'description': pokemon.description,
     }
 
-    if pokemon.parent:
-        pokemon_parent = Pokemon.objects.get(id=pokemon.parent.id)
+    if pokemon.previous_evolution:
+        previous_evolution = Pokemon.objects.get(
+            id=pokemon.previous_evolution.id
+        )
+
         pokemon_for_template.update(
             previous_evolution={
-                'pokemon_id': pokemon_parent.id,
-                'title_ru': pokemon_parent.title,
-                'img_url': request.build_absolute_uri(pokemon_parent.image.url)
+                'pokemon_id': previous_evolution.id,
+                'title_ru': previous_evolution.title,
+                'img_url': request.build_absolute_uri(
+                    previous_evolution.image.url
+                )
             }
         )
 
