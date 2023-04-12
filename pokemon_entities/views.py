@@ -1,6 +1,8 @@
 import folium
 
 from django.shortcuts import render, get_object_or_404
+from django.utils.timezone import localtime
+
 from .models import Pokemon
 from .models import PokemonEntity
 
@@ -26,14 +28,17 @@ def add_pokemon(folium_map, lat, lon, image_url=DEFAULT_IMAGE_URL):
 
 
 def show_all_pokemons(request):
-    pokemon_entities = PokemonEntity.objects.all()
+    local_time = localtime()
+    pokemon_entities = PokemonEntity.objects.filter(
+        appeared_at__lte=local_time,
+        disappeared_at__gte=local_time
+    )
+
     folium_map = folium.Map(location=MOSCOW_CENTER, zoom_start=12)
     for pokemon_entity in pokemon_entities:
-        if not pokemon_entity.is_visible():
-            continue
-
         add_pokemon(
-            folium_map, pokemon_entity.lat,
+            folium_map,
+            pokemon_entity.lat,
             pokemon_entity.lon,
             request.build_absolute_uri(pokemon_entity.pokemon.image.url)
         )
@@ -54,16 +59,18 @@ def show_all_pokemons(request):
 
 
 def show_pokemon(request, pokemon_id):
+    local_time = localtime()
     pokemon = get_object_or_404(Pokemon, id=pokemon_id)
-    pokemon_entities = PokemonEntity.objects.filter(pokemon=pokemon)
+    pokemon_entities = pokemon.entities.filter(
+        appeared_at__lt=local_time,
+        disappeared_at__gt=local_time
+    )
 
     folium_map = folium.Map(location=MOSCOW_CENTER, zoom_start=12)
     for pokemon_entity in pokemon_entities:
-        if not pokemon_entity.is_visible():
-            continue
-
         add_pokemon(
-            folium_map, pokemon_entity.lat,
+            folium_map,
+            pokemon_entity.lat,
             pokemon_entity.lon,
             request.build_absolute_uri(pokemon_entity.pokemon.image.url)
         )
@@ -75,12 +82,13 @@ def show_pokemon(request, pokemon_id):
         'title_jp': pokemon.title_jp,
         'description': pokemon.description,
     }
-    if pokemon.next_evolution.first():
-        pokemon_evolution = pokemon.next_evolution.first()
+
+    pokemon_next_evolution = pokemon.next_evolutions.first()
+    if pokemon_next_evolution:
         pokemon_for_template['next_evolution'] = {
-            'pokemon_id': pokemon_evolution.id,
-            'title_ru': pokemon_evolution.title,
-            'img_url': pokemon_evolution.image.url
+            'pokemon_id': pokemon_next_evolution.id,
+            'title_ru': pokemon_next_evolution.title,
+            'img_url': pokemon_next_evolution.image.url
         }
 
     if pokemon.previous_evolution:

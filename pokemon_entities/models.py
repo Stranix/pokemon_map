@@ -31,7 +31,7 @@ class Pokemon(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='next_evolution',
+        related_name='next_evolutions',
         verbose_name='из кого эволюционировал'
     )
 
@@ -43,7 +43,8 @@ class PokemonEntity(models.Model):
     pokemon = models.ForeignKey(
         Pokemon,
         on_delete=models.CASCADE,
-        verbose_name='покемон'
+        verbose_name='покемон',
+        related_name='entities'
     )
     lat = models.FloatField(verbose_name='широта')
     lon = models.FloatField(verbose_name='долгота')
@@ -68,10 +69,6 @@ class PokemonEntity(models.Model):
         blank=True,
         verbose_name='выносливость'
     )
-
-    def is_visible(self):
-        if self.appeared_at < timezone.localtime() < self.disappeared_at:
-            return True
 
     def __str__(self):
         return "{}, {} уровень".format(self.pokemon.title, self.level)
